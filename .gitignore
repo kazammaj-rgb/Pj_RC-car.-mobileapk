@@ -23,8 +23,8 @@ Thumbs.db
 # Editor
 .vscode/
 
-# Generated Android packages
-*.apk
+# Local APK export folder (the distributable APK is tracked under frontend/downloads/)
+pjrccarapk/
 
 # Logs
 *.log
