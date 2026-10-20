@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.env
+.env
+!gateway/config.example.env
+
+# JavaScript dependencies
+node_modules/
+
+# Firebase / deployment
+.firebase/
+.firebaserc
+firebase-debug.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+
+# Generated Android packages
+*.apk
+
+# Logs
+*.log

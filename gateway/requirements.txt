@@ -1,0 +1,4 @@
+firebase-admin==6.5.0
+python-dotenv==1.0.1
+pyserial==3.5
+requests==2.32.2

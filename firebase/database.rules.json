@@ -1,0 +1,46 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "pirccar": {
+      "devices": {
+        "$deviceId": {
+          "state": {
+            ".read": "auth != null && (auth.token.role == 'driver' || auth.token.role == 'gateway' || auth.token.role == 'admin')",
+            ".write": "auth != null && (auth.token.role == 'gateway' || auth.token.role == 'admin')"
+          },
+          "telemetry": {
+            ".read": "auth != null && (auth.token.role == 'driver' || auth.token.role == 'gateway' || auth.token.role == 'admin')",
+            ".write": "auth != null && (auth.token.role == 'gateway' || auth.token.role == 'admin')"
+          },
+          "events": {
+            ".read": "auth != null && (auth.token.role == 'driver' || auth.token.role == 'gateway' || auth.token.role == 'admin')",
+            ".write": "auth != null && (auth.token.role == 'gateway' || auth.token.role == 'admin')"
+          },
+          "commands": {
+            ".read": "auth != null && (auth.token.role == 'driver' || auth.token.role == 'gateway' || auth.token.role == 'admin')",
+            "$commandId": {
+              ".write": "auth != null && (auth.token.role == 'driver' || auth.token.role == 'admin') && !data.exists() && newData.hasChildren(['command', 'command_id', 'status', 'requested_by', 'created_at_ms', 'expires_at']) && newData.child('command_id').val() == $commandId && newData.child('requested_by').val() == auth.uid && newData.child('status').val() == 'pending' && newData.child('command').val() in ['forward', 'backward', 'left', 'right', 'stop', 'line-follow', 'obstacle-avoid', 'emergency-stop', 'rearm'] && newData.child('created_at_ms').isNumber() && newData.child('expires_at').isString()"
+            }
+          },
+          "operators": {
+            "$uid": {
+              ".read": "auth != null && (auth.token.role == 'gateway' || auth.token.role == 'admin')",
+              ".write": "auth != null && auth.uid == $uid && (auth.token.role == 'driver' || auth.token.role == 'admin') && newData.hasChildren(['heartbeat_at_ms', 'heartbeat_timeout_ms', 'auto_reconnect']) && newData.child('heartbeat_at_ms').isNumber() && newData.child('heartbeat_timeout_ms').isNumber() && newData.child('auto_reconnect').isBoolean()"
+            }
+          },
+          "control": {
+            "request": {
+              ".read": "auth != null && (auth.token.role == 'driver' || auth.token.role == 'gateway' || auth.token.role == 'admin')",
+              ".write": "auth != null && (auth.token.role == 'driver' || auth.token.role == 'admin') && newData.child('requested_by').val() == auth.uid && newData.child('action').val() in ['scan', 'connect', 'disconnect'] && newData.child('requested_at_ms').isNumber() && newData.child('status').val() == 'pending'"
+            },
+            "discovery": {
+              ".read": "auth != null && (auth.token.role == 'driver' || auth.token.role == 'gateway' || auth.token.role == 'admin')",
+              ".write": "auth != null && (auth.token.role == 'gateway' || auth.token.role == 'admin')"
+            }
+          }
+        }
+      }
+    }
+  }
+}

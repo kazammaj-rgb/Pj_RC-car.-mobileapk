@@ -1,0 +1,2196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PiRCcar | Remote Control & Monitoring</title>
+    <meta
+      name="description"
+      content="PiRCcar web dashboard for remote control, telemetry monitoring, and system diagnostics."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <div class="brand-wrap">
+          <div class="brand-mark">P</div>
+          <div>
+            <div class="eyebrow">Mission control</div>
+            <h1>PiRCcar</h1>
+          </div>
+        </div>
+
+        <button class="site-menu-button" id="globalMenuButton" type="button" aria-label="Toggle main navigation" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </button>
+
+        <nav class="main-nav" aria-label="Main navigation">
+          <a href="#overview">Overview</a>
+          <a href="#dashboard">Dashboard</a>
+          <a href="#controls">Controls</a>
+          <a href="#sensors">Sensors</a>
+          <a href="#connections">Connections</a>
+          <a href="#logs">Logs</a>
+          <a href="#settings">Settings</a>
+          <a href="#how-it-works">How It Works</a>
+        </nav>
+
+        <div class="header-actions">
+          <button class="ghost-button header-icon-button" id="themeToggle" type="button" aria-label="Switch to light mode" title="Switch to light mode">
+            <svg class="theme-sun-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"></path>
+            </svg>
+            <svg class="theme-moon-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden>
+              <path d="M20.9 13.1A8.5 8.5 0 0 1 10.9 3.1 8.5 8.5 0 1 0 20.9 13.1Z"></path>
+            </svg>
+          </button>
+          <a class="primary-button header-icon-button" id="downloadAppButton" href="https://raw.githubusercontent.com/kazammaj-rgb/Pj_RC-car.-mobileapk/main/app-debug.apk" aria-label="Download PiRCcar mobile app" title="Download PiRCcar mobile app">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 3v12m0 0 5-5m-5 5-5-5M4 17v3h16v-3"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <main>
+        <section id="overview" class="app-view hero panel" data-view="overview" aria-labelledby="overview-title">
+          <div class="hero-copy">
+            <p class="eyebrow accent">Web-based remote control and intelligent monitoring</p>
+            <h2 id="overview-title">Remote steering, sensor visibility, and safe vehicle operations.</h2>
+            <p>
+              PiRCcar brings together the Arduino Uno, HC-06 Bluetooth serial connection,
+              Firebase command flow, and a Python gateway to provide safe movement, live
+              telemetry, and operational observability for the race-ready rover.
+            </p>
+            <div class="hero-actions">
+              <a class="primary-button" href="#dashboard">Open dashboard</a>
+              <a class="ghost-button" href="#controls">Remote controls</a>
+              <a class="ghost-button" href="#sensors">Sensor readings</a>
+              <a class="ghost-button" href="#connections">Connections</a>
+            </div>
+            <div id="liveStatusBanner" class="demo-banner" role="status" aria-live="polite">
+              Waiting for live Firebase and gateway configuration.
+            </div>
+            <ul class="hero-metrics">
+              <li><span>Gateway</span><strong id="gatewayStateBadge">Unavailable</strong></li>
+              <li><span>Bluetooth</span><strong id="bluetoothStateBadge">Unknown</strong></li>
+              <li><span>Mode</span><strong id="modeBadge">Unknown</strong></li>
+            </ul>
+          </div>
+
+          <div class="hero-panel">
+            <div class="sys-card">
+              <div class="card-header small-header">
+                <span>System snapshot</span>
+                <span class="status-dot info"></span>
+              </div>
+              <div class="blob-grid">
+                <div>
+                  <label>Auth</label>
+                  <strong id="authSnapshot">Not signed in</strong>
+                </div>
+                <div>
+                  <label>Mode</label>
+                  <strong id="modeSnapshot">Unknown</strong>
+                </div>
+                <div>
+                  <label>Telemetry</label>
+                  <strong id="telemetrySnapshot">Unavailable</strong>
+                </div>
+                <div>
+                  <label>Safety</label>
+                  <strong id="safetySnapshot">Unknown</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="dashboard" class="app-view section-block" data-view="dashboard" aria-labelledby="dashboard-title" hidden>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Overview</p>
+              <h3 id="dashboard-title">Vehicle monitoring dashboard</h3>
+            </div>
+            <div class="status-pills">
+              <span id="overallStatus" class="pill warning">Not connected</span>
+              <span id="telemetryStatus" class="pill info">Telemetry unavailable</span>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <article class="card stat-card">
+              <div class="card-header">
+                <span>Gateway Status</span>
+                <span class="status-dot info"></span>
+              </div>
+              <h4 id="gatewayStatusValue">Unavailable</h4>
+              <p>Firebase bridge and command relay</p>
+            </article>
+
+            <article class="card stat-card">
+              <div class="card-header">
+                <span>Bluetooth Status</span>
+                <span class="status-dot info"></span>
+              </div>
+              <h4 id="bluetoothStatusValue">Unavailable</h4>
+              <p>HC-06 serial link to Arduino</p>
+            </article>
+
+            <article class="card stat-card">
+              <div class="card-header">
+                <span>Arduino Status</span>
+                <span class="status-dot info"></span>
+              </div>
+              <h4 id="arduinoStatusValue">Unavailable</h4>
+              <p>Command acknowledgements</p>
+            </article>
+
+            <article class="card stat-card">
+              <div class="card-header">
+                <span>Operating Mode</span>
+                <span class="status-dot info"></span>
+              </div>
+              <h4 id="operatingModeValue">Unknown</h4>
+              <p>Current driving behavior</p>
+            </article>
+
+            <article class="card stat-card">
+              <div class="card-header">
+                <span>Safety Lock</span>
+                <span class="status-dot info"></span>
+              </div>
+              <h4 id="safetyStatusValue">Unknown</h4>
+              <p>Emergency state and watchdog</p>
+            </article>
+
+            <article class="card stat-card">
+              <div class="card-header">
+                <span>Last Telemetry</span>
+                <span class="status-dot info"></span>
+              </div>
+              <h4 id="telemetryStampValue">Waiting for telemetry</h4>
+              <p>Last verified sensor update</p>
+            </article>
+
+            <article class="card stat-card">
+              <div class="card-header">
+                <span>Controller Movement</span>
+                <span class="status-dot info"></span>
+              </div>
+              <h4 id="movementStateValue">Unavailable</h4>
+              <p>Arduino-reported movement state</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="controls" class="app-view controls-view" data-view="controls" aria-labelledby="controls-title" hidden>
+          <header class="controller-header">
+            <div class="controller-heading">
+              <p class="eyebrow">PiRCcar • operator station</p>
+              <h2 id="controls-title">Arduino controller</h2>
+            </div>
+            <div class="controller-connection" aria-live="polite">
+              <span class="connection-led" id="controllerConnectionLed"></span>
+              <span id="controllerConnectionText">DISCONNECTED</span>
+            </div>
+            <button class="controller-icon-button" id="controllerThemeToggle" type="button" aria-label="Toggle color theme" title="Toggle color theme">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42m0-12.72-1.42 1.42m-9.88 9.88-1.42 1.42M17 12a5 5 0 1 1-10 0 5 5 0 0 1 10 0Z" /></svg>
+            </button>
+            <button class="controller-connect-button" id="deviceConnectOpen" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10-5 4V3l5 4L7 17" /></svg>
+              <span id="deviceConnectButtonText">CONNECT DEVICE</span>
+            </button>
+          </header>
+
+          <div class="controller-panel">
+            <div class="controller-side controller-left">
+              <p class="controller-region-label">MANUAL DRIVE</p>
+              <div class="controller-stop-state"><span class="connection-led"></span><strong id="controllerMovementState">STATUS UNKNOWN</strong></div>
+              <button class="controller-stop-button" id="controllerStopButton" type="button" aria-label="Stop vehicle">
+                <span>STOP</span>
+              </button>
+              <div class="controller-horizontal-directions">
+                <button class="direction-button direction-blue" data-command="left" type="button" aria-label="Hold to turn left">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7M8 12h12" /></svg><span>LEFT</span>
+                </button>
+                <button class="direction-button direction-blue" data-command="right" type="button" aria-label="Hold to turn right">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 5 7 7-7 7m7-7H4" /></svg><span>RIGHT</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="controller-center">
+              <p class="controller-region-label">DRIVING MODES</p>
+              <button class="controller-mode-button" id="tiltToggle" type="button" aria-pressed="false">
+                <span class="mode-indicator"></span><span id="tiltToggleLabel">TILT OFF</span>
+              </button>
+              <button class="controller-mode-button" data-mode="line-follow" type="button" aria-pressed="false">
+                <span class="mode-indicator"></span><span>LINE OFF</span>
+              </button>
+              <button class="controller-mode-button" data-mode="obstacle-avoid" type="button" aria-pressed="false">
+                <span class="mode-indicator"></span><span>ANTI-CRASH OFF</span>
+              </button>
+              <p class="controller-mode-status" id="tiltStatus" role="status">Tilt steering is off.</p>
+              <button class="controller-emergency-button" id="emergencyStopButton" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.8 20h18.4L12 3Zm0 6v5m0 3h.01" /></svg>
+                <span>EMERGENCY</span>
+              </button>
+              <button class="controller-rearm-button" data-mode="rearm" type="button">RE-ARM SAFETY LOCK</button>
+            </div>
+
+            <div class="controller-side controller-right">
+              <p class="controller-region-label">DIRECTION</p>
+              <button class="direction-button direction-green" data-command="forward" type="button" aria-label="Hold to move forward">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 14 7-7 7 7m-7-6v13" /></svg><span>UP</span>
+              </button>
+              <button class="direction-button direction-red" data-command="backward" type="button" aria-label="Hold to move backward">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 10 7 7 7-7m-7 6V3" /></svg><span>DOWN</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="controller-feedback">
+            <p id="controllerFeedback" role="status" aria-live="polite">Commands require an authenticated operator and a ready gateway.</p>
+            <details class="controller-ack-details">
+              <summary>Command and safety details</summary>
+              <ul class="detail-list" id="commandStatusList">
+                <li><span>Last request</span><strong>None</strong></li>
+                <li><span>Gateway status</span><strong>Unavailable</strong></li>
+                <li><span>Arduino acknowledgement</span><strong>Unavailable</strong></li>
+                <li><span>Emergency Lock</span><strong>Unknown</strong></li>
+              </ul>
+            </details>
+          </div>
+        </section>
+
+        <dialog id="deviceConnectDialog" class="device-dialog" aria-labelledby="deviceDialogTitle">
+          <div class="device-dialog-card">
+            <header class="device-dialog-header">
+              <div><p class="eyebrow">Bluetooth Classic via gateway</p><h2 id="deviceDialogTitle">Connect Bluetooth Device</h2></div>
+              <button class="controller-icon-button" id="deviceDialogClose" type="button" aria-label="Close device connection dialog">×</button>
+            </header>
+            <p class="device-dialog-status" id="deviceDialogStatus" role="status" aria-live="polite">Bluetooth Classic discovery runs on the authenticated Python gateway. Pair the HC-06 in the gateway computer’s Bluetooth settings if needed; browser Bluetooth permission is not used for Classic serial.</p>
+            <div class="device-dialog-actions">
+              <button class="controller-connect-button" id="scanBluetoothDevices" type="button">SCAN FOR DEVICES</button>
+              <button class="controller-rearm-button" id="disconnectBluetoothDevice" type="button" hidden>DISCONNECT</button>
+            </div>
+            <div class="device-empty-state" id="deviceListEmpty">No scan results yet. Scanning reports only devices found by the gateway computer.</div>
+            <div class="device-list" id="bluetoothDeviceList" role="radiogroup" aria-label="Discovered Bluetooth devices"></div>
+            <footer class="device-dialog-footer">
+              <button class="ghost-button" id="deviceDialogCancel" type="button">Cancel</button>
+              <button class="controller-connect-button" id="connectSelectedDevice" type="button">CONNECT SELECTED DEVICE</button>
+            </footer>
+          </div>
+        </dialog>
+
+        <section id="sensors" class="app-view section-block" data-view="sensors" aria-labelledby="sensors-title" hidden>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Telemetry</p>
+              <h3 id="sensors-title">Sensor monitoring</h3>
+            </div>
+          </div>
+
+          <div class="sensor-grid">
+            <article class="card telemetry-card">
+              <div class="card-header">
+                <span>Front ultrasonic</span>
+                <span class="status-dot info"></span>
+              </div>
+              <h4 id="ultrasonicValue">Unknown</h4>
+              <p>Distance in cm</p>
+            </article>
+
+            <article class="card telemetry-card">
+              <div class="card-header">
+                <span>Left IR</span>
+                <span class="status-dot info"></span>
+              </div>
+              <h4 id="leftIrValue">Unknown</h4>
+              <p>Black/White detection</p>
+            </article>
+
+            <article class="card telemetry-card">
+              <div class="card-header">
+                <span>Center IR</span>
+                <span class="status-dot info"></span>
+              </div>
+              <h4 id="centerIrValue">Unknown</h4>
+              <p>Black/White detection</p>
+            </article>
+
+            <article class="card telemetry-card">
+              <div class="card-header">
+                <span>Right IR</span>
+                <span class="status-dot info"></span>
+              </div>
+              <h4 id="rightIrValue">Unknown</h4>
+              <p>Black/White detection</p>
+            </article>
+          </div>
+
+          <div class="chart-card card">
+            <div class="card-header">
+              <span>Distance / telemetry history</span>
+              <span class="status-dot info"></span>
+            </div>
+            <canvas id="telemetryChart" width="900" height="200" aria-label="Telemetry history chart"></canvas>
+          </div>
+        </section>
+
+        <section id="connections" class="app-view section-block split-layout" data-view="connections" aria-labelledby="connections-title" hidden>
+          <div class="card panel-stack">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Connectivity</p>
+                <h3 id="connections-title">Connection manager</h3>
+              </div>
+            </div>
+            <ul class="detail-list" id="connectionList">
+              <li><span>Website</span><strong id="websiteConnection">Running</strong></li>
+              <li><span>Firebase</span><strong id="firebaseConnection">Not configured</strong></li>
+              <li><span>Python gateway</span><strong id="gatewayConnection">Unavailable</strong></li>
+              <li><span>HC-06 Bluetooth</span><strong id="bluetoothConnection">Unavailable</strong></li>
+              <li><span>Arduino Uno</span><strong id="arduinoConnection">Unavailable</strong></li>
+            </ul>
+            <div class="connection-actions">
+              <button class="primary-button" id="gatewayConnect" type="button" disabled>Request gateway connection</button>
+              <button class="ghost-button" id="gatewayDisconnect" type="button" disabled>Disconnect gateway</button>
+            </div>
+            <p id="connectionError" class="inline-status" role="status">Firebase is not configured.</p>
+          </div>
+
+          <div class="card panel-stack">
+            <div class="section-heading compact">
+              <div><p class="eyebrow">Operator</p><h3>Sign in</h3></div>
+            </div>
+            <form id="authForm" class="auth-form">
+              <label><span>Email</span><input id="authEmail" type="email" autocomplete="username" required /></label>
+              <label><span>Password</span><input id="authPassword" type="password" autocomplete="current-password" required /></label>
+              <div class="connection-actions">
+                <button class="primary-button" id="authSubmit" type="submit">Sign in</button>
+                <button class="ghost-button" id="authSignOut" type="button" hidden>Sign out</button>
+              </div>
+              <p id="authStatus" class="inline-status" role="status">Sign in with an authorized Firebase operator account to send commands.</p>
+            </form>
+          </div>
+
+          <div class="card panel-stack">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Events</p>
+                <h3>System alerts</h3>
+              </div>
+            </div>
+            <ul class="event-list" id="eventList">
+              <li><strong>System</strong><span>No events received</span></li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="logs" class="app-view section-block" data-view="logs" aria-labelledby="logs-title" hidden>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Audit trail</p>
+              <h3 id="logs-title">Activity logs</h3>
+            </div>
+            <div class="toolbar">
+              <select id="logFilterType">
+                <option value="all">All events</option>
+                <option value="command">Commands</option>
+                <option value="connection">Connections</option>
+                <option value="safety">Safety</option>
+                <option value="telemetry">Telemetry</option>
+              </select>
+              <button class="ghost-button" id="exportLogs" type="button">Export</button>
+            </div>
+          </div>
+
+          <div class="card table-card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Type</th>
+                  <th>Event</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="logTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="settings" class="app-view section-block split-layout" data-view="settings" aria-labelledby="settings-title" hidden>
+          <div class="card panel-stack">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Preferences</p>
+                <h3 id="settings-title">Settings</h3>
+              </div>
+            </div>
+
+            <div class="settings-grid">
+              <label>
+                <span>Theme</span>
+                <select id="themeSetting">
+                  <option value="dark">Dark</option>
+                  <option value="light">Light</option>
+                </select>
+              </label>
+              <label>
+                <span>Dashboard density</span>
+                <select id="densitySetting">
+                  <option value="compact">Compact</option>
+                  <option value="comfortable">Comfortable</option>
+                </select>
+              </label>
+              <label>
+                <span>Font size</span>
+                <select id="fontSizeSetting">
+                  <option value="normal">Normal</option>
+                  <option value="large">Large</option>
+                </select>
+              </label>
+              <label>
+                <span>Reduced motion</span>
+                <input id="motionSetting" type="checkbox" />
+              </label>
+              <label><span>Tilt sensitivity</span><input id="tiltSensitivity" type="range" min="5" max="35" step="1" value="18" /><output id="tiltSensitivityValue">18°</output></label>
+              <label><span>Tilt dead zone</span><input id="tiltDeadZone" type="range" min="0" max="15" step="1" value="5" /><output id="tiltDeadZoneValue">5°</output></label>
+              <label class="toggle-row"><span>Auto reconnect</span><input id="autoReconnect" type="checkbox" /></label>
+              <label><span>Gateway heartbeat timeout (ms)</span><input id="heartbeatTimeout" type="number" min="1000" max="30000" step="500" value="5000" /></label>
+              <label><span>Command hold timeout (ms)</span><input id="commandHoldTimeout" type="number" min="250" max="1500" step="50" value="700" /></label>
+            </div>
+          </div>
+
+          <div class="card panel-stack">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">System</p>
+                <h3>Safety and connectivity</h3>
+              </div>
+            </div>
+            <ul class="detail-list">
+              <li><span>Gateway ID</span><strong id="gatewayIdValue">pirccar-001</strong></li>
+              <li><span>Heartbeat timeout</span><strong id="heartbeatSettingValue">5000 ms</strong></li>
+              <li><span>Command hold timeout</span><strong id="holdSettingValue">700 ms</strong></li>
+              <li><span>Emergency lock</span><strong>Gateway and firmware enforced</strong></li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="app-view section-block case-study" id="how-it-works" data-view="how-it-works" aria-labelledby="how-title" hidden>
+          <header class="case-study-header" id="case-study-top">
+            <p class="eyebrow">Engineering case study</p>
+            <h2 id="how-title">ARDUINO BLUETOOTH REMOTE-CONTROL RACING CAR</h2>
+            <p class="case-study-subtitle">Android Studio + Kotlin/XML + Arduino | Case Study and Technical Documentation</p>
+            <p>This document describes the proposed architecture, hardware, wiring flow, Bluetooth command protocol, Android application, Arduino behavior, safety logic, automatic line following, test plan, and future improvements for a Bluetooth-controlled racing car.</p>
+            <aside class="compatibility-note" aria-label="Implementation compatibility note">
+              <strong>Case study and current website are related, distinct implementations.</strong>
+              <p>The case study documents a proposed Android application that communicates directly with an HC-05/HC-06. This PiRCcar website instead uses Website → Firebase Realtime Database → Python gateway → HC-06 → Arduino. The supplied firmware and physical hardware determine what actually works. The case-study single-character commands, headlights, and buzzer are proposals, not proof of supported website or firmware features.</p>
+            </aside>
+          </header>
+
+          <details class="case-study-toc" open>
+            <summary>Case study contents <span>28 sections and appendices</span></summary>
+            <nav aria-label="Case study table of contents">
+              <ol class="toc-grid">
+                <li><a href="#how-it-works/cs-section-01">Executive Summary</a></li>
+                <li><a href="#how-it-works/cs-section-02">Case Study</a></li>
+                <li><a href="#how-it-works/cs-section-03">Scope and Limitations</a></li>
+                <li><a href="#how-it-works/cs-section-04">System Requirements</a></li>
+                <li><a href="#how-it-works/cs-section-05">High-Level Architecture</a></li>
+                <li><a href="#how-it-works/cs-section-06">Hardware Components</a></li>
+                <li><a href="#how-it-works/cs-section-07">Wiring Flow Chart</a></li>
+                <li><a href="#how-it-works/cs-section-08">Suggested Wiring Relationships</a></li>
+                <li><a href="#how-it-works/cs-section-09">Bluetooth Command Protocol</a></li>
+                <li><a href="#how-it-works/cs-section-10">Manual Driving Logic</a></li>
+                <li><a href="#how-it-works/cs-section-11">Anti-Crash Logic</a></li>
+                <li><a href="#how-it-works/cs-section-12">Automatic Black-Lane Driving</a></li>
+                <li><a href="#how-it-works/cs-section-13">Automatic Mode Decision Flow</a></li>
+                <li><a href="#how-it-works/cs-section-14">Android Studio Application Design</a></li>
+                <li><a href="#how-it-works/cs-section-15">Android Application Flow</a></li>
+                <li><a href="#how-it-works/cs-section-16">Suggested Android Project Structure</a></li>
+                <li><a href="#how-it-works/cs-section-17">Arduino Software Architecture</a></li>
+                <li><a href="#how-it-works/cs-section-18">Example Pseudocode</a></li>
+                <li><a href="#how-it-works/cs-section-19">Safety Design</a></li>
+                <li><a href="#how-it-works/cs-section-20">Testing Plan</a></li>
+                <li><a href="#how-it-works/cs-section-21">Development Phases</a></li>
+                <li><a href="#how-it-works/cs-section-22">Expected Final User Experience</a></li>
+                <li><a href="#how-it-works/cs-section-23">Future Enhancements</a></li>
+                <li><a href="#how-it-works/cs-section-24">Conclusion</a></li>
+                <li><a href="#how-it-works/cs-section-25">Source Code</a></li>
+                <li><a href="#how-it-works/cs-section-26">Components</a></li>
+                <li><a href="#how-it-works/cs-appendix-a">Appendix A — Quick Command Reference</a></li>
+                <li><a href="#how-it-works/cs-appendix-b">Appendix B — Final Wiring Deliverable</a></li>
+              </ol>
+            </nav>
+          </details>
+
+          <article class="case-study-section" id="cs-section-01" aria-labelledby="cs-title-01">
+            <h3 id="cs-title-01">1. Executive Summary</h3>
+            <p>The Arduino Bluetooth Remote-Control Racing Car combines an Android application, Bluetooth serial communication, Arduino-based control, sensors, motor control, and basic autonomous navigation. Its purpose is to make a small racing car more interactive and extensible than a traditional physical or infrared remote.</p>
+            <p>The application supplies user controls and high-level commands. The Arduino remains responsible for real-time hardware work: reading sensors, applying motor-driver outputs, enforcing operating modes, and stopping the vehicle when required. Bluetooth carries short commands between the two layers.</p>
+            <p>The proposed functions include manual driving, ultrasonic anti-crash behavior, headlights, a buzzer, automatic black-lane following, and Bluetooth connection status. The exact hardware and pin map must be identified before the design can be treated as a build specification.</p>
+          </article>
+
+          <article class="case-study-section" id="cs-section-02" aria-labelledby="cs-title-02">
+            <h3 id="cs-title-02">2. Case Study</h3>
+            <h4>2.1 Background</h4>
+            <p>Many Arduino car kits are operated by a basic handheld remote, often using infrared. A smartphone interface can offer a larger control surface, clearer status, and room for additional modes without changing the core Arduino-and-motor-driver platform.</p>
+            <h4>2.2 Problem Statement</h4>
+            <p>A traditional remote offers limited feedback and is difficult to extend with sensor-driven behavior. The project explores whether a phone can provide convenient manual movement and select simple autonomous features over a Bluetooth serial link.</p>
+            <h4>2.3 Proposed Solution</h4>
+            <p>Build an Android app that pairs with an HC-05 or HC-06 Bluetooth module. The app sends short commands to an Arduino, which reads the command and controls the motor driver, ultrasonic sensor, line sensors, LEDs, and buzzer according to the selected mode.</p>
+            <h4>2.4 Objectives</h4>
+            <ul>
+              <li>Drive forward, backward, left, right, and stop from a smartphone.</li>
+              <li>Provide anti-crash behavior using an ultrasonic distance sensor.</li>
+              <li>Switch headlight LEDs on and off.</li>
+              <li>Control a buzzer for a short beep.</li>
+              <li>Follow a physical black lane using IR line sensors.</li>
+              <li>Show Bluetooth connection status and report disconnection.</li>
+            </ul>
+            <p class="proposed-label">These are case-study objectives; headlights and buzzer are not present in the current PiRCcar hardware inventory.</p>
+          </article>
+
+          <article class="case-study-section" id="cs-section-03" aria-labelledby="cs-title-03">
+            <h3 id="cs-title-03">3. Scope and Limitations</h3>
+            <p>The initial concept assumes a typical Arduino racing-car kit: Arduino-compatible board, H-bridge motor driver, DC gear motors, Bluetooth Classic serial module, ultrasonic range sensor, and an IR line-sensor module. Kit vendors vary their boards, pin labels, electrical levels, and sensor polarity. Identify and verify the actual components and pin assignments before wiring or uploading firmware.</p>
+            <p>Line following means tracking a physical black guide lane on a prepared surface. It is not computer vision, mapping, or autonomous navigation of arbitrary roads. The 0/1 readings shown later are illustrative; sensor polarity depends on the module and calibration.</p>
+            <p>The Android design below is proposed documentation. The current website implementation is not an Android app and uses a Firebase/Python gateway path. The website’s live behavior must be assessed from its current frontend, gateway, firmware, and actual hardware, not inferred from this proposal.</p>
+          </article>
+
+          <article class="case-study-section" id="cs-section-04" aria-labelledby="cs-title-04">
+            <h3 id="cs-title-04">4. System Requirements</h3>
+            <h4>Functional requirements</h4>
+            <div class="table-scroll"><table><thead><tr><th>ID</th><th>Requirement</th></tr></thead><tbody>
+              <tr><td>FR-01</td><td>The application can connect to a paired compatible Bluetooth serial module.</td></tr>
+              <tr><td>FR-02</td><td>The user can request forward movement.</td></tr>
+              <tr><td>FR-03</td><td>The user can request backward movement.</td></tr>
+              <tr><td>FR-04</td><td>The user can request left and right turns.</td></tr>
+              <tr><td>FR-05</td><td>The user can stop the vehicle.</td></tr>
+              <tr><td>FR-06</td><td>The user can enable and disable anti-crash behavior.</td></tr>
+              <tr><td>FR-07</td><td>The system can measure front distance with an ultrasonic sensor.</td></tr>
+              <tr><td>FR-08</td><td>The user can switch the proposed headlights on and off.</td></tr>
+              <tr><td>FR-09</td><td>The user can request a short buzzer beep.</td></tr>
+              <tr><td>FR-10</td><td>The user can enable and disable automatic black-lane following.</td></tr>
+              <tr><td>FR-11</td><td>The Arduino can read left, center, and right IR line sensors.</td></tr>
+              <tr><td>FR-12</td><td>The app indicates Bluetooth connection state and loss.</td></tr>
+            </tbody></table></div>
+            <h4>Non-functional requirements</h4>
+            <ul>
+              <li>Controls should be understandable and usable on a phone.</li>
+              <li>Bluetooth commands should be short and reliably framed.</li>
+              <li>The vehicle should start stopped and should stop on control loss.</li>
+              <li>Manual, anti-crash, and auto-drive modes must be coordinated, not run as competing controllers.</li>
+              <li>Application and firmware responsibilities should be modular.</li>
+              <li>Bluetooth disconnection must not leave the motors running indefinitely.</li>
+            </ul>
+          </article>
+
+          <article class="case-study-section" id="cs-section-05" aria-labelledby="cs-title-05">
+            <h3 id="cs-title-05">5. High-Level Architecture</h3>
+            <div class="architecture-strip" aria-label="Proposed Android car command path">
+              <span>Android Phone</span><b aria-hidden="true">→</b><span>Bluetooth</span><b aria-hidden="true">→</b><span>HC-05 / HC-06</span><b aria-hidden="true">→</b><span>Arduino</span><b aria-hidden="true">→</b><span>Motor Driver</span><b aria-hidden="true">→</b><span>DC Motors</span>
+            </div>
+            <div class="layer-grid">
+              <div><h4>Android application</h4><p>Provides the user interface, Bluetooth connection controls, and high-level requests such as Forward or Auto-drive.</p></div>
+              <div><h4>Bluetooth serial link</h4><p>Transports short command text between the phone and the paired module. HC-05/HC-06 uses Bluetooth Classic SPP, not BLE.</p></div>
+              <div><h4>Arduino controller</h4><p>Validates requests, reads sensors, applies mode and safety decisions, and drives the interface signals.</p></div>
+              <div><h4>Power and actuators</h4><p>The motor driver switches motor current from the motor supply; Arduino GPIO must not power DC motors directly.</p></div>
+            </div>
+            <p>The ultrasonic sensor, IR line sensors, LEDs, and buzzer connect to Arduino I/O and power as required by their modules. They are not connected directly to the Android phone.</p>
+            <aside class="compatibility-note"><strong>Current PiRCcar web path:</strong> Website → Firebase Realtime Database → Python gateway on a Bluetooth-capable computer → HC-06 → Arduino. Firebase Hosting serves static files; it does not run the Bluetooth gateway. This differs from the proposed direct Android-to-HC-06 link.</aside>
+          </article>
+
+          <article class="case-study-section" id="cs-section-06" aria-labelledby="cs-title-06">
+            <h3 id="cs-title-06">6. Hardware Components</h3>
+            <div class="table-scroll"><table><thead><tr><th>Component</th><th>Purpose</th><th>Notes</th></tr></thead><tbody>
+              <tr><td>Arduino board</td><td>Main embedded controller</td><td>Exact board and available pins must be confirmed.</td></tr>
+              <tr><td>HC-05 / HC-06 Bluetooth module</td><td>Bluetooth Classic serial link</td><td>Check module voltage and UART logic-level requirements.</td></tr>
+              <tr><td>Motor driver</td><td>Switches motor current and direction</td><td>Must match the motors and supply current.</td></tr>
+              <tr><td>DC gear motors</td><td>Vehicle propulsion</td><td>Powered through the motor driver, never directly from GPIO.</td></tr>
+              <tr><td>Ultrasonic sensor</td><td>Front distance measurement</td><td>Threshold and mounting geometry need testing.</td></tr>
+              <tr><td>IR line sensor module</td><td>Detects black/white lane contrast</td><td>Sensor output polarity and threshold need calibration.</td></tr>
+              <tr><td>Buzzer</td><td>Optional audible feedback</td><td>Proposed output; not established in the current PiRCcar inventory.</td></tr>
+              <tr><td>LED headlights</td><td>Optional visual output</td><td>Proposed output; use current-limiting resistors.</td></tr>
+              <tr><td>Battery or power source</td><td>Supplies logic and motors</td><td>Voltage, current capacity, regulation, and grounding must be verified.</td></tr>
+              <tr><td>Chassis and wheels</td><td>Mechanical platform</td><td>Secure the chassis and raise wheels for first motion tests.</td></tr>
+            </tbody></table></div>
+          </article>
+
+          <article class="case-study-section" id="cs-section-07" aria-labelledby="cs-title-07">
+            <h3 id="cs-title-07">7. Wiring Flow Chart</h3>
+            <p class="diagram-caption">Conceptual wiring diagram, not a verified pin-by-pin schematic.</p>
+            <div class="wiring-diagram" role="img" aria-label="Android phone connects over Bluetooth to an HC-05 or HC-06 and Arduino. Arduino connects to motor driver and motors, ultrasonic sensor, IR line sensors, LEDs, and buzzer.">
+              <div class="diagram-top"><span>Android Phone</span><b>Bluetooth serial</b><span>HC-05 / HC-06</span><b>UART</b><span>Arduino</span></div>
+              <div class="diagram-branches"><div class="diagram-bus" aria-hidden="true"></div>
+                <div class="diagram-branch"><i></i><span>Motor Driver</span><b>→</b><span>DC Motors</span></div>
+                <div class="diagram-branch"><i></i><span>Ultrasonic Sensor</span></div>
+                <div class="diagram-branch"><i></i><span>IR Line Sensors</span></div>
+                <div class="diagram-branch"><i></i><span>LEDs and Buzzer</span></div>
+              </div>
+            </div>
+            <p>All signal and power connections depend on the actual kit. This diagram shows functional relationships only; it does not specify confirmed pins, voltage levels, or wiring colors.</p>
+          </article>
+
+          <article class="case-study-section" id="cs-section-08" aria-labelledby="cs-title-08">
+            <h3 id="cs-title-08">8. Suggested Wiring Relationships</h3>
+            <div class="table-scroll"><table><thead><tr><th>Device signal</th><th>Suggested Arduino connection</th><th>Purpose / note</th></tr></thead><tbody>
+              <tr><td>Bluetooth TX</td><td>Arduino software/hardware UART RX</td><td>Module-to-Arduino serial data.</td></tr>
+              <tr><td>Bluetooth RX</td><td>Arduino UART TX through level adjustment if required</td><td>Arduino-to-module serial data; verify module tolerance.</td></tr>
+              <tr><td>Motor-driver direction inputs</td><td>Digital output pins</td><td>Set each motor channel direction according to the driver truth table.</td></tr>
+              <tr><td>Motor-driver PWM / enable</td><td>PWM-capable output pins</td><td>Optional speed control; verify board pin capability.</td></tr>
+              <tr><td>Ultrasonic TRIG</td><td>Digital output</td><td>Starts the distance pulse.</td></tr>
+              <tr><td>Ultrasonic ECHO</td><td>Digital input</td><td>Measures the return pulse; level shift if board voltage requires it.</td></tr>
+              <tr><td>IR left / center / right</td><td>Digital or analog inputs per module</td><td>Calibrate black/white output polarity.</td></tr>
+              <tr><td>Headlight LED</td><td>Digital output through a current-limiting resistor</td><td>Proposed output, not verified on current hardware.</td></tr>
+              <tr><td>Buzzer</td><td>Digital output or driver transistor as required</td><td>Proposed output; check current requirements.</td></tr>
+            </tbody></table></div>
+            <ul class="warning-list">
+              <li>Never connect DC motors directly to Arduino GPIO pins. Use a motor driver.</li>
+              <li>Verify the Bluetooth module's supply voltage and UART logic voltage.</li>
+              <li>Use an appropriate voltage divider or level shifting for Bluetooth RX when required.</li>
+              <li>Verify the exact board and module labels before applying power.</li>
+              <li>Use a common signal ground where required, while keeping motor-current paths appropriate to the driver design.</li>
+            </ul>
+          </article>
+
+          <article class="case-study-section" id="cs-section-09" aria-labelledby="cs-title-09">
+            <h3 id="cs-title-09">9. Bluetooth Command Protocol</h3>
+            <p>The case study proposes this simple single-character command vocabulary. It is documentation of a proposed Android-to-Arduino protocol, not a confirmed protocol for the current website.</p>
+            <div class="table-scroll"><table><thead><tr><th>Command</th><th>Meaning</th><th>Expected Arduino action</th></tr></thead><tbody>
+              <tr><td><code>F</code></td><td>Forward</td><td>Request forward motor direction, subject to mode and safety checks.</td></tr>
+              <tr><td><code>B</code></td><td>Backward</td><td>Request reverse motor direction.</td></tr>
+              <tr><td><code>L</code></td><td>Left</td><td>Request a left turn.</td></tr>
+              <tr><td><code>R</code></td><td>Right</td><td>Request a right turn.</td></tr>
+              <tr><td><code>S</code></td><td>Stop</td><td>Stop motors and cancel active movement.</td></tr>
+              <tr><td><code>A</code></td><td>Anti-crash ON</td><td>Enable ultrasonic obstacle behavior.</td></tr>
+              <tr><td><code>a</code></td><td>Anti-crash OFF</td><td>Disable anti-crash and return to a stopped/manual-ready state.</td></tr>
+              <tr><td><code>H</code></td><td>Headlight ON</td><td>Set the proposed LED output on.</td></tr>
+              <tr><td><code>h</code></td><td>Headlight OFF</td><td>Set the proposed LED output off.</td></tr>
+              <tr><td><code>P</code></td><td>Beep</td><td>Generate a short buzzer pulse.</td></tr>
+              <tr><td><code>D</code></td><td>Auto-drive ON</td><td>Enable black-lane following.</td></tr>
+              <tr><td><code>d</code></td><td>Auto-drive OFF</td><td>Disable autonomous movement and stop as required.</td></tr>
+            </tbody></table></div>
+            <aside class="compatibility-note"><strong>Compatibility with current PiRCcar:</strong> its documented website/firmware protocol uses framed commands such as <code>%F#</code>, <code>%B#</code>, <code>%L#</code>, <code>%R#</code>, <code>%S#</code>, <code>%T#</code>, and <code>%A#</code>, plus safety/lease frames. The proposed lowercase off commands, headlight commands, and buzzer command are not thereby supported. Do not change the working framed protocol merely to match this case-study table.</aside>
+          </article>
+
+          <article class="case-study-section" id="cs-section-10" aria-labelledby="cs-title-10">
+            <h3 id="cs-title-10">10. Manual Driving Logic</h3>
+            <ol class="numbered-flow">
+              <li>User presses Forward.</li><li>Application sends the movement command.</li><li>Arduino receives and validates the command.</li><li>Arduino checks the active mode and applicable safety rules.</li><li>The motor driver operates the motors if movement is permitted.</li><li>Releasing the movement button requests Stop.</li>
+            </ol>
+            <p>Actual continuous movement depends on firmware timing. A design may use a press-and-hold lease refreshed while input remains active, or a bounded movement request; in either case, release, input cancellation, and connection loss need a safe stop behavior. A button animation alone is not evidence that a command reached the Arduino.</p>
+          </article>
+
+          <article class="case-study-section" id="cs-section-11" aria-labelledby="cs-title-11">
+            <h3 id="cs-title-11">11. Anti-Crash Logic</h3>
+            <p>The ultrasonic sensor emits a sound pulse and measures the return time. Firmware converts that duration to an estimated distance, handles timeout or invalid readings, and compares valid measurements with a configurable obstacle threshold.</p>
+            <p>An example starting threshold is <strong>20 cm</strong>; this is illustrative, not a guaranteed safe setting. Sensor placement, speed, braking distance, surface, and measurement noise all affect the usable threshold. Test at low speed and with a physical stop available.</p>
+            <p>One possible policy is to prevent forward movement when an obstacle is closer than the threshold, while allowing reverse movement only if the safety design explicitly permits it. The policy must be consistent across manual and autonomous modes. The current website's framed protocol uses <code>%A#</code> for Anti-Crash enable and <code>%S#</code> to stop/cancel; verify actual firmware behavior separately from this proposed flow.</p>
+          </article>
+
+          <article class="case-study-section" id="cs-section-12" aria-labelledby="cs-title-12">
+            <h3 id="cs-title-12">12. Automatic Black-Lane Driving</h3>
+            <p>Three IR sensors observe the surface under the front of the car. Their combined readings estimate where the black guide lane lies relative to the chassis.</p>
+            <div class="table-scroll"><table><thead><tr><th>Left</th><th>Center</th><th>Right</th><th>Typical response</th></tr></thead><tbody>
+              <tr><td>0</td><td>1</td><td>0</td><td>Lane centered: move forward.</td></tr>
+              <tr><td>1</td><td>0</td><td>0</td><td>Lane left: steer left.</td></tr>
+              <tr><td>0</td><td>0</td><td>1</td><td>Lane right: steer right.</td></tr>
+              <tr><td>1</td><td>1</td><td>1</td><td>Intersection or broad dark region: apply the selected junction policy.</td></tr>
+              <tr><td>0</td><td>0</td><td>0</td><td>Line lost: stop or perform a bounded recovery policy.</td></tr>
+            </tbody></table></div>
+            <p class="proposed-label">Calibration limitation: the table assumes 1 means black and 0 means white. The actual 0/1 interpretation depends on the sensor module, comparator adjustment, surface, and firmware input mode; measure and verify it before use.</p>
+          </article>
+
+          <article class="case-study-section" id="cs-section-13" aria-labelledby="cs-title-13">
+            <h3 id="cs-title-13">13. Automatic Mode Decision Flow</h3>
+            <p class="diagram-caption">Proposed control flow; it does not assert that every step is implemented in the current firmware.</p>
+            <div class="decision-flow" role="img" aria-label="Start, Bluetooth and power on, read auto mode. If auto is off, accept manual command. If auto is on, read IR sensors, determine line position, command motors, check anti-crash, and repeat.">
+              <span>START</span><b>↓</b><span>Bluetooth / Power ON</span><b>↓</b><span>Read Auto Mode</span><b>↓</b>
+              <div class="decision-split"><div><strong>AUTO OFF</strong><span>Accept manual command</span></div><div><strong>AUTO ON</strong><span>Read IR sensors → determine line position → command motors</span></div></div>
+              <b>↓</b><span>Check anti-crash</span><b>↓</b><span>Repeat while mode and safety conditions permit</span>
+            </div>
+          </article>
+
+          <article class="case-study-section" id="cs-section-14" aria-labelledby="cs-title-14">
+            <h3 id="cs-title-14">14. Android Studio Application Design</h3>
+            <p>The proposed mobile application uses Android Studio, Kotlin for application logic, and XML layouts for the interface. Compatible HC-05/HC-06 modules are typically controlled using Android Bluetooth Classic APIs and serial-profile sockets. Android version and target SDK determine the required runtime permissions and system prompts.</p>
+            <h4>Proposed UI functions</h4>
+            <ul><li>Bluetooth status and connect/disconnect controls.</li><li>Forward, backward, left, right, and stop controls.</li><li>Headlight on/off.</li><li>Anti-crash on/off.</li><li>Auto-drive on/off.</li><li>Beep control.</li><li>Optional speed control and diagnostic log.</li></ul>
+            <p>The PiRCcar website is a separate web application. It does not use Kotlin/XML and does not connect directly from the browser to HC-06 Bluetooth Classic SPP.</p>
+          </article>
+
+          <article class="case-study-section" id="cs-section-15" aria-labelledby="cs-title-15">
+            <h3 id="cs-title-15">15. Android Application Flow</h3>
+            <ol class="numbered-flow"><li>Launch App.</li><li>Check Bluetooth Availability.</li><li>Request Permissions.</li><li>Select Device.</li><li>Connect.</li><li>Show Status.</li><li>Enable Controls.</li><li>Send Commands.</li><li>Monitor Connection.</li><li>Disconnect Safely.</li></ol>
+            <p>Bluetooth permissions vary by Android release and target SDK. The app should request only the permissions required for the selected platform level, explain denied access, and keep driving controls unavailable until a real connection is established.</p>
+          </article>
+
+          <article class="case-study-section" id="cs-section-16" aria-labelledby="cs-title-16">
+            <h3 id="cs-title-16">16. Suggested Android Project Structure</h3>
+            <div class="table-scroll"><table><thead><tr><th>Path / file</th><th>Purpose</th></tr></thead><tbody>
+              <tr><td><code>com.example.racingcar/</code></td><td>Application package namespace.</td></tr>
+              <tr><td><code>MainActivity.kt</code></td><td>Owns the screen, user actions, and visible connection state.</td></tr>
+              <tr><td><code>BluetoothManager.kt</code></td><td>Owns device selection, socket connection, serial read/write, and disconnect cleanup.</td></tr>
+              <tr><td><code>CarCommand.kt</code></td><td>Centralizes command values and encoding.</td></tr>
+              <tr><td><code>activity_main.xml</code></td><td>Defines the main control layout.</td></tr>
+              <tr><td><code>drawable/</code></td><td>Contains icons and visual resources.</td></tr>
+              <tr><td><code>values/</code></td><td>Contains strings, colors, dimensions, and themes.</td></tr>
+            </tbody></table></div>
+          </article>
+
+          <article class="case-study-section" id="cs-section-17" aria-labelledby="cs-title-17">
+            <h3 id="cs-title-17">17. Arduino Software Architecture</h3>
+            <div class="module-grid">
+              <div><h4>Bluetooth command reader</h4><p>Frames serial input and rejects malformed or unsupported requests.</p></div>
+              <div><h4>Motor control functions</h4><p>Translate allowed movement decisions into motor-driver direction and PWM signals.</p></div>
+              <div><h4>Ultrasonic distance function</h4><p>Triggers a measurement and returns either a valid range or an explicit invalid result.</p></div>
+              <div><h4>Anti-crash controller</h4><p>Applies the selected threshold policy to movement requests.</p></div>
+              <div><h4>Line sensor reader</h4><p>Reads and calibrates left, center, and right sensors.</p></div>
+              <div><h4>Line-following controller</h4><p>Maps sensor combinations to bounded motor actions.</p></div>
+              <div><h4>Headlight controller</h4><p>Controls the proposed LED output if that hardware is installed.</p></div>
+              <div><h4>Buzzer controller</h4><p>Controls the proposed buzzer output if that hardware is installed.</p></div>
+              <div><h4>Main safety/mode controller</h4><p>Coordinates manual and automatic modes, stop behavior, startup state, and communication loss.</p></div>
+            </div>
+            <p>Keeping these responsibilities modular makes individual behavior easier to test and prevents sensor, mode, and motor code from competing for control.</p>
+          </article>
+
+          <article class="case-study-section" id="cs-section-18" aria-labelledby="cs-title-18">
+            <h3 id="cs-title-18">18. Example Pseudocode</h3>
+            <p>The following is pseudocode for the proposed design, not executable Arduino source.</p>
+            <pre><code>setup:
+    initialize Bluetooth serial
+    initialize motor driver, sensors, LEDs, and buzzer
+    stop motors
+    autoDrive = false
+    antiCrash = false
+
+loop:
+    command = readBluetoothCommand()
+
+    if command == "D": autoDrive = true
+    if command == "d": autoDrive = false; stopMotors()
+    if command == "A": antiCrash = true
+    if command == "a": antiCrash = false; stopMotors()
+    if command == "H": headlightsOn()
+    if command == "h": headlightsOff()
+    if command == "P": beepBriefly()
+
+    if autoDrive:
+        readings = readLineSensors()
+        followBlackLane(readings)
+    else if command requests manual movement:
+        if antiCrash and forwardRequested and obstacleTooClose():
+            stopMotors()
+        else:
+            applyManualMovement(command)
+
+    if bluetoothDisconnected():
+        stopMotors()
+
+    updateHeadlightAndBuzzerOutputs()</code></pre>
+          </article>
+
+          <article class="case-study-section" id="cs-section-19" aria-labelledby="cs-title-19">
+            <h3 id="cs-title-19">19. Safety Design</h3>
+            <ul class="safety-checklist">
+              <li>Default motor state is stopped after startup.</li><li>Stop after Bluetooth disconnection or control timeout.</li><li>Never power motors directly from GPIO pins.</li><li>Use suitable motor power and a sound ground/reference arrangement.</li><li>Separate noisy motor power from sensitive logic power where practical.</li><li>Test with wheels lifted and the chassis secured.</li><li>Test anti-crash at low speed with a known obstacle and a reachable stop.</li><li>Provide a physical power switch or emergency disconnect.</li><li>Do not rely on software alone for mechanical or electrical safety.</li>
+            </ul>
+            <p>A software STOP sent over Bluetooth is not a guaranteed physical power cutoff. These are design recommendations; they are not evidence that the physical car has passed safety testing.</p>
+          </article>
+
+          <article class="case-study-section" id="cs-section-20" aria-labelledby="cs-title-20">
+            <h3 id="cs-title-20">20. Testing Plan</h3>
+            <p>These are planned tests and expected results, not completed test results. The current workspace has no connected car, so no physical test is marked passed.</p>
+            <div class="table-scroll"><table><thead><tr><th>Test</th><th>Procedure</th><th>Expected result</th></tr></thead><tbody>
+              <tr><td>Bluetooth connection</td><td>Pair and connect to the selected module.</td><td>App reports connected only after connection succeeds.</td></tr>
+              <tr><td>Forward</td><td>Request forward with wheels raised.</td><td>Vehicle moves forward if safety and hardware allow.</td></tr>
+              <tr><td>Backward</td><td>Request backward with wheels raised.</td><td>Vehicle moves backward if permitted.</td></tr>
+              <tr><td>Left / right</td><td>Request each turn independently.</td><td>Each direction matches the intended chassis response.</td></tr>
+              <tr><td>Stop</td><td>Release movement control or send Stop.</td><td>Motors stop promptly.</td></tr>
+              <tr><td>Headlight</td><td>Toggle the proposed output.</td><td>LED output changes only if installed and wired.</td></tr>
+              <tr><td>Buzzer</td><td>Request a beep.</td><td>Buzzer sounds briefly only if installed and wired.</td></tr>
+              <tr><td>Anti-crash</td><td>Approach a test obstacle slowly.</td><td>Configured policy prevents unsafe forward motion.</td></tr>
+              <tr><td>Auto-drive</td><td>Place the car on a calibrated black lane.</td><td>Controller follows within the tested track conditions.</td></tr>
+              <tr><td>Auto-off</td><td>Disable automatic mode while active.</td><td>Autonomous routine exits and vehicle stops or returns safely.</td></tr>
+              <tr><td>Bluetooth loss</td><td>Interrupt the serial link during motion.</td><td>Firmware control-loss behavior stops the motors.</td></tr>
+            </tbody></table></div>
+          </article>
+
+          <article class="case-study-section" id="cs-section-21" aria-labelledby="cs-title-21">
+            <h3 id="cs-title-21">21. Development Phases</h3>
+            <ol class="phase-list"><li>Identify the actual car kit, board, motor driver, sensors, power source, and module variants.</li><li>Document and verify the wiring relationships and voltage requirements.</li><li>Test motor-driver direction and STOP behavior with wheels raised.</li><li>Pair and test the Bluetooth serial link at the configured baud rate.</li><li>Add and calibrate ultrasonic and IR sensor behavior.</li><li>Add optional outputs such as headlights and buzzer only if physically installed.</li><li>Implement and test the Android connection and manual controls.</li><li>Integrate anti-crash and automatic line following with explicit mode transitions.</li><li>Test connection-loss safety, document measured behavior, and produce the final pin-by-pin build record.</li></ol>
+          </article>
+
+          <article class="case-study-section" id="cs-section-22" aria-labelledby="cs-title-22">
+            <h3 id="cs-title-22">22. Expected Final User Experience</h3>
+            <p>The intended Android experience begins with checking Bluetooth availability, granting the required permission, selecting and connecting to the car, and showing the connection state. The user can then drive with directional controls, stop the car, enable anti-crash behavior, or place the vehicle on a calibrated black lane and enable automatic following.</p>
+            <p>Connection loss should be visible and should cause the embedded controller to stop the motors. This is the proposed user experience, not a report that the Android app or physical hardware has been tested. The current PiRCcar website presents a different web-to-Firebase-to-gateway route.</p>
+          </article>
+
+          <article class="case-study-section" id="cs-section-23" aria-labelledby="cs-title-23">
+            <h3 id="cs-title-23">23. Future Enhancements</h3>
+            <ul class="enhancement-list"><li>Variable motor speed using PWM.</li><li>Battery-voltage monitoring.</li><li>Live sensor telemetry.</li><li>Ultrasonic distance display.</li><li>Adjustable obstacle threshold.</li><li>Adjustable automatic speed.</li><li>Multiple driving profiles.</li><li>Dark/futuristic mobile UI.</li><li>Connection auto-reconnect.</li><li>Arduino command acknowledgments.</li><li>Car status indicators.</li><li>BLE support if compatible hardware replaces the current Bluetooth Classic module.</li><li>Camera and remote video streaming as an advanced extension.</li></ul>
+            <p>These are future possibilities from the case study; their presence here does not mean they are implemented or available on the PiRCcar hardware.</p>
+          </article>
+
+          <article class="case-study-section" id="cs-section-24" aria-labelledby="cs-title-24">
+            <h3 id="cs-title-24">24. Conclusion</h3>
+            <p>The Arduino Bluetooth racing-car concept combines Android application development with embedded-system control. The application offers a user-facing control and status layer; the Arduino performs time-sensitive sensor, motor, mode, and safety work. Before producing a final pin-by-pin schematic or asserting feature support, identify the actual kit, inspect the board and modules, verify voltage requirements, and test the complete hardware path.</p>
+          </article>
+
+          <article class="case-study-section" id="cs-section-25" aria-labelledby="cs-title-25">
+            <h3 id="cs-title-25">25. Source Code</h3>
+            <p>These are the five original Arduino project files supplied for this case study. They are displayed as read-only text for inspection; they are not executed by the website and no download action is provided.</p>
+            <div class="source-file-tabs" role="tablist" aria-label="Arduino source files">
+              <button id="source-tab-ino" type="button" role="tab" aria-controls="source-panel" aria-selected="true" tabindex="0" data-source-id="source-ino">smart robot car.ino</button>
+              <button id="source-tab-ir-cpp" type="button" role="tab" aria-controls="source-panel" aria-selected="false" tabindex="-1" data-source-id="source-ir-cpp">ir_remote.cpp</button>
+              <button id="source-tab-ir-h" type="button" role="tab" aria-controls="source-panel" aria-selected="false" tabindex="-1" data-source-id="source-ir-h">ir_remote.h</button>
+              <button id="source-tab-keymap-cpp" type="button" role="tab" aria-controls="source-panel" aria-selected="false" tabindex="-1" data-source-id="source-keymap-cpp">keymap.cpp</button>
+              <button id="source-tab-keymap-h" type="button" role="tab" aria-controls="source-panel" aria-selected="false" tabindex="-1" data-source-id="source-keymap-h">keymap.h</button>
+            </div>
+            <div id="source-panel" class="source-code-panel" role="tabpanel" aria-labelledby="source-tab-ino" tabindex="0">
+              <pre><code id="source-code"></code></pre>
+            </div>
+
+            <script type="text/plain" id="source-ino">
+#include "IR_remote.h"
+#include "keymap.h"
+
+IRremote ir(12);
+
+#include <Servo.h>
+
+String BT_value;
+String BT_value_temp;
+volatile boolean Funtion_FLag;
+volatile int Left_Tra_Value;
+volatile int Center_Tra_Value;
+volatile int Right_Tra_Value;
+volatile int Black;
+volatile int white;
+volatile int Front_Distance;
+volatile int Left_Distance;
+volatile int Right_Distance;
+volatile char IR_Car_Mode;
+volatile boolean IR_Mode_Flag;
+Servo servo_A2;
+
+void Infrared_Tracing() {
+  Left_Tra_Value = digitalRead(9);
+  Center_Tra_Value = digitalRead(10);
+  Right_Tra_Value = digitalRead(11);
+  if (Left_Tra_Value != Black && (Center_Tra_Value == Black && Right_Tra_Value != Black)) {
+    Move_Forward(130);
+
+  } else if (Left_Tra_Value == Black && (Center_Tra_Value == Black && Right_Tra_Value != Black)) {
+    Rotate_Left(180);
+  } else if (Left_Tra_Value == Black && (Center_Tra_Value != Black && Right_Tra_Value != Black)) {
+    Rotate_Left(160);
+  } else if (Left_Tra_Value != Black && (Center_Tra_Value != Black && Right_Tra_Value == Black)) {
+    Rotate_Right(160);
+  } else if (Left_Tra_Value != Black && (Center_Tra_Value == Black && Right_Tra_Value == Black)) {
+    Rotate_Right(180);
+  } else if (Left_Tra_Value == Black && (Center_Tra_Value == Black && Right_Tra_Value == Black)) {
+    STOP();
+  }
+}
+
+void Move_Forward(int car_speed) {
+  digitalWrite(2,LOW);
+  digitalWrite(4,HIGH);
+  digitalWrite(7,LOW);
+  digitalWrite(8,HIGH);
+  analogWrite(5,car_speed);
+  analogWrite(6,car_speed);
+}
+
+void Move_Backward(int car_speed) {
+  digitalWrite(2,HIGH);
+  digitalWrite(4,LOW);
+  digitalWrite(7,HIGH);
+  digitalWrite(8,LOW);
+  analogWrite(5,car_speed);
+  analogWrite(6,car_speed);
+}
+
+void Rotate_Left(int car_speed) {
+  digitalWrite(2,LOW);
+  digitalWrite(4,HIGH);
+  digitalWrite(7,HIGH);
+  digitalWrite(8,LOW);
+  analogWrite(5,car_speed);
+  analogWrite(6,car_speed);
+}
+
+void Rotate_Right(int car_speed) {
+  digitalWrite(2,HIGH);
+  digitalWrite(4,LOW);
+  digitalWrite(7,LOW);
+  digitalWrite(8,HIGH);
+  analogWrite(5,car_speed);
+  analogWrite(6,car_speed);
+}
+
+void STOP() {
+  digitalWrite(2,HIGH);
+  digitalWrite(4,HIGH);
+  digitalWrite(7,HIGH);
+  digitalWrite(8,HIGH);
+  analogWrite(5,0);
+  analogWrite(6,0);
+}
+
+float checkdistance() {
+  digitalWrite(A1, LOW);
+  delayMicroseconds(2);
+  digitalWrite(A1, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(A1, LOW);
+  float distance = pulseIn(A0, HIGH) / 58.00;
+  delay(10);
+  return distance;
+}
+
+void Ultrasonic_Avoidance() {
+  Front_Distance = checkdistance();
+  if (0 < Front_Distance && Front_Distance <= 20) {
+    STOP();
+    delay(100);
+    servo_A2.write(180);
+    delay(500);
+    Left_Distance = checkdistance();
+    delay(100);
+    servo_A2.write(0);
+    delay(500);
+    Right_Distance = checkdistance();
+    delay(100);
+    if (Right_Distance <= Left_Distance) {
+      Rotate_Left(255);
+      servo_A2.write(90);
+      delay(300);
+
+    } else {
+      Rotate_Right(255);
+      servo_A2.write(90);
+      delay(300);
+
+    }
+
+  } else {
+    Move_Forward(150);
+
+  }
+}
+
+void IR_remote_control() {
+  switch (IR_Car_Mode) {
+   case 'b':
+    Move_Backward(255);
+    delay(300);
+    STOP();
+    IR_Car_Mode = ' ';
+    break;
+   case 'f':
+    Move_Forward(255);
+    delay(300);
+    STOP();
+    IR_Car_Mode = ' ';
+    break;
+   case 'l':
+    Rotate_Left(255);
+    delay(300);
+    STOP();
+    IR_Car_Mode = ' ';
+    break;
+   case 'r':
+    Rotate_Right(255);
+    delay(300);
+    STOP();
+    IR_Car_Mode = ' ';
+    break;
+   case 's':
+    STOP();
+    IR_Car_Mode = ' ';
+    break;
+  }
+  if (ir.getIrKey(ir.getCode(),1) == IR_KEYCODE_UP) {
+    IR_Car_Mode = 'f';
+    IR_Mode_Flag = true;
+
+  } else if (ir.getIrKey(ir.getCode(),1) == IR_KEYCODE_LEFT) {
+    IR_Car_Mode = 'l';
+    IR_Mode_Flag = true;
+  } else if (ir.getIrKey(ir.getCode(),1) == IR_KEYCODE_DOWN) {
+    IR_Car_Mode = 'b';
+    IR_Mode_Flag = true;
+  } else if (ir.getIrKey(ir.getCode(),1) == IR_KEYCODE_RIGHT) {
+    IR_Car_Mode = 'r';
+    IR_Mode_Flag = true;
+  } else if (ir.getIrKey(ir.getCode(),1) == IR_KEYCODE_OK) {
+    IR_Car_Mode = 's';
+    IR_Mode_Flag = true;
+  }
+}
+
+void setup(){
+  Serial.begin(9600);
+  BT_value = "";
+  BT_value_temp = "";
+  Funtion_FLag = false;
+  Left_Tra_Value = 1;
+  Center_Tra_Value = 1;
+  Right_Tra_Value = 1;
+  Black = 1;
+  white = 0;
+  Front_Distance = 0;
+  Left_Distance = 0;
+  Right_Distance = 0;
+  IR_Car_Mode = ' ';
+  IR_Mode_Flag = false;
+  pinMode(9, INPUT);
+  pinMode(10, INPUT);
+  pinMode(11, INPUT);
+  pinMode(2, OUTPUT);
+  pinMode(4, OUTPUT);
+  pinMode(7, OUTPUT);
+  pinMode(8, OUTPUT);
+  pinMode(A1, OUTPUT);
+  pinMode(A0, INPUT);
+  servo_A2.attach(A2);
+}
+
+void loop(){
+  while (true) {
+    while (Serial.available() > 0) {
+      BT_value_temp = BT_value_temp + ((char)(Serial.read()));
+      delay(2);
+      if (!Serial.available() > 0) {
+        BT_value = BT_value_temp;
+        BT_value_temp = "";
+
+      }
+    }
+    if (0 < String(BT_value).length()) {
+      Serial.println(BT_value);
+      Serial.println(String(BT_value).length());
+      if (4 >= String(BT_value).length()) {
+        if ('%' == String(BT_value).charAt(0) && '#' == String(BT_value).charAt((String(BT_value).length() - 1))) {
+          if (IR_Mode_Flag == true) {
+            STOP();
+            IR_Car_Mode = ' ';
+            IR_Mode_Flag = false;
+
+          }
+          switch (String(BT_value).charAt(1)) {
+            case 'F':
+            Move_Forward(255);
+            delay(500);
+            BT_value = "";
+            break;
+           case 'B':
+            Move_Backward(255);
+            delay(500);
+            BT_value = "";
+            break;
+           case 'L':
+            Rotate_Left(230);
+            delay(300);
+            BT_value = "";
+            break;
+           case 'R':
+            Rotate_Right(230);
+            delay(300);
+            BT_value = "";
+            break;
+           case 'T':
+            Infrared_Tracing();
+            break;
+           case 'S':
+            BT_value = "";
+            STOP();
+            break;
+           case 'A':
+            Ultrasonic_Avoidance();
+            break;
+           case 'Z':
+            break;
+          }
+
+        }
+
+      } else {
+        BT_value = "";
+        STOP();
+
+      }
+
+    } else {
+      STOP();
+
+    }
+    IR_remote_control();
+  }
+
+}
+            </script>
+
+            <script type="text/plain" id="source-ir-cpp">
+#include "IR_remote.h"
+#include "Keymap.h"
+// Provides ISR
+#ifndef __AVR_ATmega32U4__
+#include <avr/interrupt.h>
+
+volatile irparams_t irparams;
+bool MATCH(uint8_t measured_ticks, uint8_t desired_us)
+{
+  // Serial.print(measured_ticks);Serial.print(",");Serial.println(desired_us);
+  return(measured_ticks >= desired_us - (desired_us>>2)-1 && measured_ticks <= desired_us + (desired_us>>2)+1);
+}
+
+ISR(TIMER_INTR_NAME)
+{
+  // Serial.println("ISR");
+   //Serial.println(millis());
+  uint8_t irdata = (uint8_t)digitalRead(irparams.recvpin);
+  // uint32_t new_time = micros();
+  // uint8_t timer = (new_time - irparams.lastTime)>>6;
+  irparams.timer++; // One more 50us tick
+  if (irparams.rawlen >= RAWBUF)
+  {
+    // Buffer overflow
+    irparams.rcvstate = STATE_STOP;
+  }
+  switch(irparams.rcvstate)
+  {
+    case STATE_IDLE: // In the middle of a gap
+      if (irdata == MARK)
+      {
+        irparams.rawlen = 0;
+        irparams.timer = 0;
+        irparams.rcvstate = STATE_MARK;
+      }
+      break;
+    case STATE_MARK: // timing MARK
+      if (irdata == SPACE)
+      {
+        // MARK ended, record time
+        irparams.rawbuf[irparams.rawlen++] = irparams.timer;
+        irparams.timer = 0;
+        irparams.rcvstate = STATE_SPACE;
+      }
+      break;
+    case STATE_SPACE: // timing SPACE
+      if (irdata == MARK)
+      {
+        // SPACE just ended, record time
+        irparams.rawbuf[irparams.rawlen++] = irparams.timer;
+        irparams.timer = 0;
+        irparams.rcvstate = STATE_MARK;
+      }
+      else
+      { // SPACE
+        if (irparams.timer > GAP_TICKS)
+        {
+          // big SPACE, indicates gap between codes
+          // Mark current code as ready for processing
+          // Switch to STOP
+          // Don't reset timer; keep counting space width
+          irparams.rcvstate = STATE_STOP;
+          irparams.lastTime = millis();
+        } 
+      }
+      break;
+    case STATE_STOP: // waiting, measuring gap
+      if(millis() - irparams.lastTime > 120)
+      {
+        irparams.rawlen = 0;
+        irparams.timer = 0;
+        irparams.rcvstate = STATE_IDLE;
+      }
+      else if (irdata == MARK)
+      { 
+        // reset gap timer
+        irparams.timer = 0;
+      }
+      break;
+  }
+  // irparams.lastTime = new_time;
+}
+
+/**
+ * Alternate Constructor which can call your own function to map the IR to arduino port,
+ * no pins are used or initialized here.
+ * \param[in]
+ *   None
+ */
+IRremote::IRremote(int pin)
+{
+  pinMode(pin,INPUT);
+  irparams.recvpin = pin;
+  // attachInterrupt(INT0, irISR, CHANGE);
+  
+  irDelayTime = 0;
+  irIndex = 0;
+  irRead = 0;
+  irReady = false;
+  irBuffer = "";
+  irPressed = false;
+  begin();
+}
+
+/**
+ * \par Function
+ *    begin
+ * \par Description
+ *    Initialize interrupt.
+ * \param[in]
+ *    None
+ * \par Output
+ *    None
+ * \par Return
+ *    None
+ * \par Others
+ *    None
+ */
+void IRremote::begin()
+{
+  cli();
+  // setup pulse clock timer interrupt
+  //Prescale /8 (16M/8 = 0.5 microseconds per tick)
+  // Therefore, the timer interval can range from 0.5 to 128 microseconds
+  // depending on the reset value (255 to 0)
+  TIMER_CONFIG_NORMAL();
+
+  //Timer2 Overflow Interrupt Enable
+  TIMER_ENABLE_INTR;
+
+  // TIMER_RESET;
+
+  sei();  // enable interrupts
+
+  // initialize state machine variables
+  irparams.rawlen = 0;
+  irparams.rcvstate = STATE_IDLE;
+}
+
+/**
+ * \par Function
+ *    end
+ * \par Description
+ *    Close the interrupt.
+ * \param[in]
+ *    None
+ * \par Output
+ *    None
+ * \par Return
+ *    None
+ * \par Others
+ *    None
+ */
+void IRremote::end()
+{
+  EIMSK &= ~(1 << INT0);
+}
+
+/**
+ * \par Function
+ *    decode
+ * \par Description
+ *    Decodes the received IR message.
+ * \param[in]
+ *    None
+ * \par Output
+ *    None
+ * \par Return
+ *    Returns 0 if no data ready, 1 if data ready.
+ * \par Others
+ *    Results of decoding are stored in results.
+ */
+ErrorStatus IRremote::decode()
+{
+  rawbuf = irparams.rawbuf;
+  rawlen = irparams.rawlen;
+  if (irparams.rcvstate != STATE_STOP)
+  {
+     return ERROR;
+  }
+
+  if (decodeNEC())
+  {
+    begin();
+    return SUCCESS;
+  }
+  begin();
+  return ERROR;
+}
+
+/**
+ * \par Function
+ *    decodeNEC
+ * \par Description
+ *    Decodes NEC the received IR message.
+ * \param[in]
+ *    None
+ * \par Output
+ *    None
+ * \par Return
+ *    Returns ERROR if decode NEC no done, SUCCESS if decode NEC done.
+ * \par Others
+ *    Results of decode NEC.
+ */
+// NECs have a repeat only 4 items long
+ErrorStatus IRremote::decodeNEC()
+{
+  static unsigned long repeat_value = 0xFFFFFFFF;
+  static byte repeta_time = 0;
+  uint32_t data = 0;
+  int offset = 0; // Skip first space
+  // Initial mark
+  if (!MATCH(rawbuf[offset], NEC_HDR_MARK/50)) 
+  {
+    return ERROR;
+  }
+  offset++;
+  // Check for repeat
+  if (rawlen == 3 &&
+    MATCH(rawbuf[offset], NEC_RPT_SPACE/50) &&
+    MATCH(rawbuf[offset+1], NEC_BIT_MARK/50)) 
+  {  
+     rawbuf[offset] = 0;
+     rawbuf[offset+1] = 0;
+     repeta_time++;
+    // if(repeta_time > 1) {
+        repeta_time = 0;
+        bits = 0;
+        value = repeat_value;
+       // Serial.println("REPEAT");
+        decode_type = NEC;
+        return SUCCESS;
+   //  }
+  }
+  if (rawlen < (2 * NEC_BITS + 3)) 
+  {
+    return ERROR;
+  }
+  // Initial space  
+  if (!MATCH(rawbuf[offset], NEC_HDR_SPACE/50)) 
+  {
+    return ERROR;
+  }
+  rawbuf[offset] = 0;
+  offset++;
+  for (int i = 0; i < NEC_BITS; i++)
+  {
+    if (!MATCH(rawbuf[offset], NEC_BIT_MARK/50)) 
+    {
+      return ERROR;
+    }
+    rawbuf[offset] = 0;
+    offset++;
+    if (MATCH(rawbuf[offset], NEC_ONE_SPACE/50))
+    {
+      //data = (data << 1) | 1;
+      data = (data >> 1) | 0x80000000;
+    } 
+    else if (MATCH(rawbuf[offset], NEC_ZERO_SPACE/50))
+    {
+      //data <<= 1;
+      data >>= 1;
+    } 
+    else 
+    {
+      return ERROR;
+    }
+    offset++;
+  }
+  // Success
+  bits = NEC_BITS;
+  value = data;
+  repeat_value = data;
+  decode_type = NEC;
+  repeta_time = 0;
+  return SUCCESS;
+}
+
+/**
+ * \par Function
+ *    mark
+ * \par Description
+ *    Sends an IR mark for the specified number of microseconds.
+ * \param[in]
+ *    us - THe time of a PWM.
+ * \par Output
+ *    None
+ * \par Return
+ *    None
+ * \par Others
+ *    None
+ */
+void IRremote::mark(uint16_t us)
+{
+  // Sends an IR mark for the specified number of microseconds.
+  // The mark output is modulated at the PWM frequency.
+  TIMER_ENABLE_PWM; // Enable pin 3 PWM output
+  delayMicroseconds(us);
+}
+
+/**
+ * \par Function
+ *    space
+ * \par Description
+ *    Sends an IR mark for the specified number of microseconds.
+ * \param[in]
+ *    us - THe time of a PWM.
+ * \par Output
+ *    None
+ * \par Return
+ *    None
+ * \par Others
+ *    None
+ */
+/* Leave pin off for time (given in microseconds) */
+void IRremote::space(uint16_t us)
+{
+  // Sends an IR space for the specified number of microseconds.
+  // A space is no output, so the PWM output is disabled.
+  TIMER_DISABLE_PWM; // Disable pin 3 PWM output
+  delayMicroseconds(us);
+}
+
+/**
+ * \par Function
+ *    enableIROut
+ * \par Description
+ *    Enable an IR for the specified number of khz.
+ * \param[in]
+ *    us - THe time of a INTR.
+ * \par Output
+ *    None
+ * \par Return
+ *    None
+ * \par Others
+ *    None
+ */
+void IRremote::enableIROut(uint8_t khz)
+{
+  TIMER_DISABLE_INTR; //Timer2 disable Interrupt
+  TIMER_CONFIG_KHZ(khz);
+}
+
+/**
+ * \par Function
+ *    enableIRIn
+ * \par Description
+ *    Enable an IR to write in.
+ * \param[in]
+ *    None
+ * \par Output
+ *    None
+ * \par Return
+ *    None
+ * \par Others
+ *    None
+ */
+// initialization
+void IRremote::enableIRIn() {
+  cli();
+  // setup pulse clock timer interrupt
+  //Prescale /8 (16M/8 = 0.5 microseconds per tick)
+  // Therefore, the timer interval can range from 0.5 to 128 microseconds
+  // depending on the reset value (255 to 0)
+  TIMER_CONFIG_NORMAL();
+
+  //Timer2 Overflow Interrupt Enable
+  TIMER_ENABLE_INTR;
+
+  //TIMER_RESET;
+
+  sei();  // enable interrupts
+
+  // initialize state machine variables
+  irparams.rcvstate = STATE_IDLE;
+  irparams.rawlen = 0;
+
+  // set pin modes
+  pinMode(irparams.recvpin, INPUT);
+}
+
+/**
+ * \par Function
+ *    sendRaw
+ * \par Description
+ *    Send the length of data with hz.
+ * \param[in]
+ *    buf[] - The data's buffer.
+  * \param[in]
+ *    len - The data's length.
+  * \param[in]
+ *    hz - The hz for sending data.
+ * \par Output
+ *    None
+ * \par Return
+ *    None
+ * \par Others
+ *    None
+ */
+void IRremote::sendRaw(unsigned int buf[], int len, uint8_t hz)
+{
+  enableIROut(hz);
+  for (int i = 0; i < len; i++)
+  {
+    if (i & 1)
+    {
+      space(buf[i]);
+    } 
+    else
+    {
+      mark(buf[i]);
+    }
+  }
+  space(0); // Just to be sure
+}
+
+/**
+ * \par Function
+ *    getString
+ * \par Description
+ *    Get string in a INTR.
+ * \param[in]
+ *    None
+ * \par Output
+ *    None
+ * \par Return
+ *    Return the result in a IRQ.
+ * \par Others
+ *    None
+ */
+String IRremote::getString()
+{
+  if(decode())
+  {
+    irRead = ((value >> 8) >> 8) & 0xff;
+    if(irRead == 0xa || irRead == 0xd)
+    {
+      irIndex = 0;
+      irReady = true;
+    }
+    else
+    {
+      irBuffer += irRead; 
+      irIndex++;
+    }
+    irDelayTime = millis();
+  }
+  else
+  {
+    if(irRead > 0)
+    {
+      if(millis() - irDelayTime > 100)
+      {
+        irPressed = false;
+        irRead = 0;
+        irDelayTime = millis();
+        Pre_Str = "";
+      }
+    }
+  }
+  if(irReady)
+  {
+    irReady = false;
+    String s = String(irBuffer);
+    Pre_Str = s;
+    irBuffer = "";
+    return s;
+  }
+  return Pre_Str;
+}
+
+/**
+ * \par Function
+ *    getCode
+ * \par Description
+ *    Get the reading code.
+ * \param[in]
+ *    None
+ * \par Output
+ *    None
+ * \par Return
+ *    Return the result of reading.
+ * \par Others
+ *    None
+ */
+unsigned char IRremote::getCode()
+{
+  irIndex = 0;
+  loop();
+  return irRead;
+}
+String IRremote::getKeyMap(byte keycode, byte ir_type)
+{
+   byte i;
+   ST_KEY_MAP *irkeymap = normal_ir_keymap;
+   if (ir_type == IR_TYPE_EM) irkeymap = em_ir_keymap;
+   for (i = 0; i < KEY_MAX; i++) {
+        if (irkeymap[i].keycode == keycode)
+        return irkeymap[i].keyname;
+   }
+   return "";
+}
+
+byte IRremote::getIrKey(byte keycode, byte ir_type)
+{
+    byte i;
+    ST_KEY_MAP *irkeymap = normal_ir_keymap;
+    if (ir_type == IR_TYPE_EM) irkeymap = em_ir_keymap;
+    for (i = 0; i < KEY_MAX; i++) {
+        if (irkeymap[i].keycode == keycode)
+        return i;
+    }
+   return 0xFF;
+}
+/**
+ * \par Function
+ *    sendString
+ * \par Description
+ *    Send data.
+ * \param[in]
+ *    s - The string you want to send.
+ * \par Output
+ *    None
+ * \par Return
+ *    None
+ * \par Others
+ *    None
+ */
+void IRremote::sendString(String s)
+{
+  unsigned long l;
+  uint8_t data;
+  s.concat('\n');
+  for(int i = 0;i < s.length();i++)
+  {
+    data = s.charAt(i);
+    l = 0x0000ffff & (uint8_t)(~data);
+    l = l << 8;
+    l = l + ((uint8_t)data);
+    l = l << 16;
+    l = l | 0x000000ff;
+    sendNEC(l,32);
+    delay(20);
+  }
+  enableIRIn();
+}
+
+/**
+ * \par Function
+ *    sendString
+ * \par Description
+ *    Send data.
+ * \param[in]
+ *    v - The string you want to send.
+ * \par Output
+ *    None
+ * \par Return
+ *    None
+ * \par Others
+ *    None
+ */
+void IRremote::sendString(float v)
+{
+  dtostrf(v,5, 8, floatString);
+  sendString(floatString);
+}
+
+/**
+ * \par Function
+ *    sendNEC
+ * \par Description
+ *    Send NEC.
+ * \param[in]
+ *    data - The data you want to send.
+  * \param[in]
+ *    nbits - The data bit you want to send.
+ * \par Output
+ *    None
+ * \par Return
+ *    None
+ * \par Others
+ *    None
+ */
+void IRremote::sendNEC(unsigned long data, int nbits)
+{
+  
+  enableIROut(38);
+  mark(NEC_HDR_MARK);
+  space(NEC_HDR_SPACE);
+  for (int i = 0; i < nbits; i++)
+  {
+    if (data & 1) 
+    {
+      mark(NEC_BIT_MARK);
+      space(NEC_ONE_SPACE);
+    } 
+    else 
+    {
+      mark(NEC_BIT_MARK);
+      space(NEC_ZERO_SPACE);
+    }
+    data >>= 1;
+  }
+  mark(NEC_BIT_MARK);
+  space(0);
+}
+
+/**
+ * \par Function
+ *    loop
+ * \par Description
+ *    A circle of operation.
+ * \param[in]
+ *    None
+ * \par Output0
+ *    None
+ * \par Return
+ *    None
+ * \par Others
+ *    None
+ */
+void IRremote::loop()
+{
+  if(decode())
+  {
+    irRead = ((value >> 8) >> 8) & 0xff;
+    irPressed = true;
+    if(irRead == 0xa || irRead == 0xd)
+    {
+      irIndex = 0;
+      irReady = true;
+    }
+    else
+    {
+      irBuffer += irRead; 
+      irIndex++;
+      if(irIndex > 64)
+      {
+        irIndex = 0;
+        irBuffer = "";
+      }
+    }
+    irDelayTime =  millis();
+  }
+  else
+  {
+    if(irRead > 0)
+    { 
+     // Serial.println(millis() - irDelayTime);
+      if(millis() - irDelayTime > 0)
+      {
+        irPressed = false;
+        irRead = 0;
+        irDelayTime = millis();
+      }
+    }
+  }
+ // Serial.println(irRead, HEX);
+}
+
+/**
+ * \par Function
+ *    keyPressed
+ * \par Description
+ *    Press key.
+ * \param[in]
+ *    None
+ * \par Output
+ *    None
+ * \par Return
+ *    Return you the pressed key or not.
+ * \par Others
+ *    None
+ */
+boolean IRremote::keyPressed(unsigned char r)
+{
+  
+  irIndex = 0;
+  loop();
+  return irRead == r;
+}
+#endif // !defined(__AVR_ATmega32U4__)
+            </script>
+
+            <script type="text/plain" id="source-ir-h">
+#ifndef IRremote_h
+#define IRremote_h
+
+/* Includes ------------------------------------------------------------------*/
+#include <stdint.h>
+#include <stdbool.h>
+#include <Arduino.h>
+
+#ifdef ME_PORT_DEFINED
+#endif // ME_PORT_DEFINED
+#ifndef __AVR_ATmega32U4__
+#define MARK  0
+#define SPACE 1
+#define NEC_BITS 32
+#define USECPERTICK 50  // microseconds per clock interrupt tick
+#define RAWBUF 80 // Length of raw duration buffer
+
+typedef enum {ERROR = 0, SUCCESS = !ERROR} ErrorStatus;
+
+#define NEC_HDR_MARK	9000
+#define NEC_HDR_SPACE	4500
+#define NEC_BIT_MARK	560
+#define NEC_ONE_SPACE	1600
+#define NEC_ZERO_SPACE	560
+#define NEC_RPT_SPACE	2250
+#define NEC_RPT_PERIOD	110000
+
+
+#define _GAP 5000 // Minimum map between transmissions
+
+// receiver states
+#define STATE_IDLE     2
+#define STATE_MARK     3
+#define STATE_SPACE    4
+#define STATE_STOP     5
+
+
+// Values for decode_type
+#define NEC 1
+#define SONY 2
+#define RC5 3
+#define RC6 4
+#define DISH 5
+#define SHARP 6
+#define PANASONIC 7
+#define JVC 8
+#define SANYO 9
+#define MITSUBISHI 10
+#define SAMSUNG 11
+#define LG 12
+#define UNKNOWN -1
+
+#define TOPBIT 0x80000000
+
+
+#ifdef F_CPU
+#define SYSCLOCK F_CPU     // main Arduino clock
+#else
+#define SYSCLOCK 16000000  // main Arduino clock
+#endif
+
+
+#define _GAP 5000 // Minimum map between transmissions
+#define GAP_TICKS (_GAP/USECPERTICK)
+
+
+#define TIMER_DISABLE_INTR   (TIMSK2 = 0)
+#define TIMER_ENABLE_PWM     (TCCR2A |= _BV(COM2B1))
+#define TIMER_DISABLE_PWM    (TCCR2A &= ~(_BV(COM2B1)))
+#define TIMER_ENABLE_INTR    (TIMSK2 = _BV(OCIE2A))
+#define TIMER_DISABLE_INTR   (TIMSK2 = 0)
+#define TIMER_INTR_NAME      TIMER2_COMPA_vect
+#define TIMER_CONFIG_KHZ(val) ({ \
+  const uint8_t pwmval = F_CPU / 2000 / (val); \
+  TCCR2A = _BV(WGM20); \
+  TCCR2B = _BV(WGM22) | _BV(CS20); \
+  OCR2A = pwmval; \
+  OCR2B = pwmval / 3; \
+})
+
+#define TIMER_COUNT_TOP      (SYSCLOCK * USECPERTICK / 1000000)
+#if (TIMER_COUNT_TOP < 256)
+#define TIMER_CONFIG_NORMAL() ({ \
+  TCCR2A = _BV(WGM21); \
+  TCCR2B = _BV(CS20); \
+  OCR2A = TIMER_COUNT_TOP; \
+  TCNT2 = 0; \
+})
+#else
+#define TIMER_CONFIG_NORMAL() ({ \
+  TCCR2A = _BV(WGM21); \
+  TCCR2B = _BV(CS21); \
+  OCR2A = TIMER_COUNT_TOP / 8; \
+  TCNT2 = 0; \
+})
+#endif
+
+// information for the interrupt handler
+typedef struct {
+  uint8_t recvpin;           // pin for IR data from detector
+  volatile uint8_t rcvstate;          // state machine
+  volatile uint32_t lastTime;
+  unsigned int timer;     // 
+  volatile uint8_t rawbuf[RAWBUF]; // raw data
+  volatile uint8_t rawlen;         // counter of entries in rawbuf
+} irparams_t;
+
+
+class IRremote
+{
+public:
+
+  IRremote(int pin);
+  ErrorStatus decode();
+  void begin();
+  void end();
+  void loop();
+  boolean keyPressed(unsigned char r);
+  // void resume();
+   
+  int8_t decode_type; // NEC, SONY, RC5, UNKNOWN
+  unsigned long value; // Decoded value
+  uint8_t bits; // Number of bits in decoded value
+  volatile uint8_t *rawbuf; // Raw intervals in .5 us ticks
+  int rawlen; // Number of records in rawbuf.
+  String getString();
+  unsigned char getCode();
+  String getKeyMap(byte keycode, byte ir_type = 1);
+  byte getIrKey(byte keycode,    byte ir_type = 1);
+  void sendString(String s);
+  void sendString(float v);
+  void sendNEC(unsigned long data, int nbits);
+  void sendRaw(unsigned int buf[], int len, uint8_t hz);
+  void enableIROut(uint8_t khz);
+  void enableIRIn();
+  void mark(uint16_t us);
+  void space(uint16_t us);
+private:
+  ErrorStatus decodeNEC();
+  int16_t irIndex;	
+  char irRead;
+  char floatString[5];
+  boolean irReady;
+  boolean irPressed;
+  String irBuffer;
+  String Pre_Str;
+  double irDelayTime;
+};
+#endif // !__AVR_ATmega32U4__
+#endif
+            </script>
+
+            <script type="text/plain" id="source-keymap-cpp">
+#include "Keymap.h"
+
+// ST_KEY_MAP normal_ir_keymap[18] = {
+    // {"1", 0x45},
+    // {"2", 0x46},
+    // {"3", 0x47},
+    // {"4", 0x44},
+    // {"5", 0x40},
+    // {"6", 0x43},
+    // {"7", 0x07},
+    // {"8", 0x15},
+    // {"9", 0x09},
+    // {"0", 0x19},
+    // {"*", 0x16},
+    // {"#", 0x0D},
+    // {"up", 0x18},
+    // {"down", 0x52},
+    // {"ok", 0x1C},
+    // {"left", 0x08},
+    // {"right", 0x5A}
+// };//不带logh方向盘在下方
+
+
+
+// ST_KEY_MAP normal_ir_keymap[18] = {
+    // {"up", 0x46},
+    // {"left", 0x44},
+    // {"ok", 0x40},
+    // {"right", 0x43},
+    // {"down", 0x15},
+    // {"1", 0x16},
+    // {"2", 0x19},
+    // {"3", 0x0d},
+    // {"4", 0x0c},
+    // {"5", 0x18},
+    // {"6", 0x5e},
+    // {"7", 0x08},
+    // {"8", 0x1c},
+    // {"9", 0x5A},
+    // {"*", 0x42},
+    // {"0", 0x52},
+    // {"#", 0x4A}
+// };
+
+ST_KEY_MAP normal_ir_keymap[18] = {
+	{"1", 0x16},
+    {"2", 0x19},
+    {"3", 0x0d},
+    {"4", 0x0c},
+    {"5", 0x18},
+    {"6", 0x5e},
+    {"7", 0x08},
+    {"8", 0x1c},
+    {"9", 0x5A},
+	{"0", 0x52},
+    {"*", 0x42},
+    {"#", 0x4A},
+	{"up", 0x46},
+	{"down", 0x15},
+	{"ok", 0x40},
+    {"left", 0x44},
+	{"right", 0x43},
+};//带logo LA
+
+// ST_KEY_MAP em_ir_keymap[21] = {
+    // {"A", 0x45},
+    // {"B", 0x46},
+    // {"C", 0x47},
+    // {"D", 0x44},
+    // {"up", 0x40},
+    // {"+", 0x43},
+    // {"left", 0x07},
+    // {"ok", 0x15},
+    // {"right", 0x09},
+    // {"0", 0x16},
+    // {"down", 0x19},
+    // {"-", 0x0d},
+    // {"1", 0x0c},
+    // {"2", 0x18},
+    // {"3", 0x5e},
+    // {"4", 0x08},
+    // {"5", 0x1c},
+    // {"6", 0x5A},
+    // {"7", 0x42},
+    // {"8", 0x52},
+    // {"9", 0x4A}
+// };
+            </script>
+
+            <script type="text/plain" id="source-keymap-h">
+#ifndef _KEYMAY_H_
+#define _KEYMAY_H_
+#include <Arduino.h>
+#define KEY_MAX 21
+typedef struct
+{
+    String keyname;
+    byte keycode;
+}ST_KEY_MAP;
+
+#define IR_TYPE_NORMAL 1
+#define IR_TYPE_EM 2
+
+typedef enum {
+    IR_KEYCODE_1 = 0,
+    IR_KEYCODE_2,
+    IR_KEYCODE_3,
+    IR_KEYCODE_4,
+    IR_KEYCODE_5,
+    IR_KEYCODE_6,
+    IR_KEYCODE_7,
+    IR_KEYCODE_8,
+    IR_KEYCODE_9,
+    IR_KEYCODE_0,
+    IR_KEYCODE_STAR,      // *
+    IR_KEYCODE_POUND,     // # 
+    IR_KEYCODE_UP,
+    IR_KEYCODE_DOWN,
+    IR_KEYCODE_OK,
+    IR_KEYCODE_LEFT,
+    IR_KEYCODE_RIGHT,
+}E_NORMAL_IR_KEYCODE;
+
+typedef enum {
+    EM_IR_KEYCODE_A = 0,
+    EM_IR_KEYCODE_B,
+    EM_IR_KEYCODE_C,
+    EM_IR_KEYCODE_D,
+    EM_IR_KEYCODE_UP,
+    EM_IR_KEYCODE_PLUS,
+    EM_IR_KEYCODE_LEFT,
+    EM_IR_KEYCODE_OK,
+    EM_IR_KEYCODE_RIGHT,
+    EM_IR_KEYCODE_0,
+    EM_IR_KEYCODE_DOWN,      
+    EM_IR_KEYCODE_REDUCE,     
+    EM_IR_KEYCODE_1,
+    EM_IR_KEYCODE_2,
+    EM_IR_KEYCODE_3,
+    EM_IR_KEYCODE_4,
+    EM_IR_KEYCODE_5,
+    EM_IR_KEYCODE_6,
+    EM_IR_KEYCODE_7,
+    EM_IR_KEYCODE_8,
+	EM_IR_KEYCODE_9,
+}E_EM_IR_KEYCODE;
+
+extern ST_KEY_MAP normal_ir_keymap[];
+extern ST_KEY_MAP em_ir_keymap[];
+#endif  /* _KEYMAY_H_ */
+            </script>
+          </article>
+
+          <article class="case-study-section" id="cs-section-26" aria-labelledby="cs-title-26">
+            <h3 id="cs-title-26">26. Components</h3>
+            <h4>Hardware Components</h4>
+            <ol class="component-inventory">
+              <li>LAFVIN Uno R3 Board</li>
+              <li>V5 Expansion Board</li>
+              <li>IR Receiver Module</li>
+              <li>Line Tracking Module</li>
+              <li>Ultrasonic Sensor</li>
+              <li>Bluetooth Module HC06</li>
+              <li>Acrylic Chassis</li>
+              <li>Servo Motor (SG90)</li>
+              <li>Cell Box</li>
+              <li>F-F Dupont Wire</li>
+              <li>Remote Control</li>
+              <li>Ultrasonic Holder</li>
+              <li>Tire</li>
+              <li>DC Motor</li>
+              <li>L298N Motor Board</li>
+            </ol>
+            <h4>Project Status and Technical Notes</h4>
+            <ul class="project-status-notes">
+              <li>Live states require Firebase and gateway configuration.</li>
+              <li>Database rules require authorized custom claims.</li>
+              <li>Verified motor pin mapping is required by the firmware.</li>
+              <li>IR support activates when the matching LAFVIN library and keymap are beside the sketch.</li>
+            </ul>
+          </article>
+
+          <article class="case-study-section" id="cs-appendix-a" aria-labelledby="cs-title-a">
+            <h3 id="cs-title-a">Appendix A — Quick Command Reference</h3>
+            <div class="table-scroll"><table><thead><tr><th>Command</th><th>Function</th><th>Compatibility</th></tr></thead><tbody>
+              <tr><td><code>F</code></td><td>Forward</td><td>Proposed single-character command.</td></tr><tr><td><code>B</code></td><td>Backward</td><td>Proposed single-character command.</td></tr><tr><td><code>L</code></td><td>Left</td><td>Proposed single-character command.</td></tr><tr><td><code>R</code></td><td>Right</td><td>Proposed single-character command.</td></tr><tr><td><code>S</code></td><td>Stop</td><td>Proposed single-character command.</td></tr><tr><td><code>A</code> / <code>a</code></td><td>Anti-crash on / off</td><td>Proposed feature pair; current web firmware documents a different framed command contract.</td></tr><tr><td><code>H</code> / <code>h</code></td><td>Headlights on / off</td><td>Proposed only; current PiRCcar hardware/firmware does not establish headlights.</td></tr><tr><td><code>P</code></td><td>Beep</td><td>Proposed only; current PiRCcar hardware/firmware does not establish a buzzer.</td></tr><tr><td><code>D</code> / <code>d</code></td><td>Auto-drive on / off</td><td>Proposed single-character pair; current web firmware uses framed mode commands.</td></tr>
+            </tbody></table></div>
+            <aside class="compatibility-note">The current PiRCcar implementation documents `%F#`, `%B#`, `%L#`, `%R#`, `%S#`, `%T#`, and `%A#`, with additional framed safety and lease commands. Consult the firmware and protocol documentation for current support; this proposed table does not override them.</aside>
+          </article>
+
+          <article class="case-study-section" id="cs-appendix-b" aria-labelledby="cs-title-b">
+            <h3 id="cs-title-b">Appendix B — Final Wiring Deliverable</h3>
+            <p>The final build record should identify every physical connection and its purpose:</p>
+            <ul><li>Arduino pin number and component pin.</li><li>Power and ground connections.</li><li>Purpose of each signal.</li><li>Motor-driver motor supply, logic supply, enables, and direction inputs.</li><li>Bluetooth TX/RX and any required logic-level adjustment.</li><li>Ultrasonic TRIG/ECHO.</li><li>Left, center, and right IR sensor outputs.</li><li>LED and current-limiting resistor connections, if installed.</li><li>Buzzer connection and any required driver, if installed.</li></ul>
+            <p>Exact wiring depends on the actual kit, board, motor driver, sensor modules, and Bluetooth board. The relationships in this case study are not a substitute for a verified schematic or the component manufacturers' electrical limits.</p>
+          </article>
+
+          <footer class="case-study-footer"><a href="#how-it-works/case-study-top">Back to top</a><span>Proposed Android case study; not a hardware verification record.</span></footer>
+        </section>
+
+      </main>
+    </div>
+
+    <script src="firebase-config.js"></script>
+    <script type="module" src="app.js?v=source-code-viewer-1"></script>
+  </body>
+</html>
